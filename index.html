@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小蒜 - AI智能助手</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/5.12.8/reset.min.css">
+  <style>
+    /* 小蒜平台还原样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .app-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* 顶部导航栏 */
+    .header {
+      height: 64px;
+      background: #001529;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #4A82EA 0%, #69B1FF 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+    }
+    
+    .nav-menu {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .nav-item {
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.3s;
+    }
+    
+    .nav-item:hover {
+      color: #fff;
+    }
+    
+    .nav-item.active {
+      color: #fff;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .admin-btn {
+      padding: 6px 16px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .admin-btn:hover {
+      color: #fff;
+      border-color: #fff;
+    }
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    /* 主内容区域 */
+    .main-container {
+      display: flex;
+      margin-left: 250px;
+      margin-top: 64px;
+      height: calc(100vh - 64px);
+      transition: margin-left 0.2s;
+    }
+    
+    .main-container.sidebar-collapsed {
+      margin-left: 0;
+    }
+    
+    /* 左侧边栏 */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 64px;
+      width: 250px;
+      height: calc(100vh - 64px);
+      background: #F5FAFF;
+      padding: 36px 20px 20px;
+      overflow-y: auto;
+      z-index: 10;
+      transition: transform 0.2s;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .sidebar.collapsed {
+      transform: translateX(-250px);
+    }
+    
+    .sidebar-toggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8C8C8C;
+      font-size: 18px;
+      z-index: 11;
+    }
+    
+    /* 功能按钮 */
+    .feature-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .feature-btn {
+      width: 100%;
+      height: 2.85rem;
+      background: rgba(201, 227, 255, 0.4);
+      border: none;
+      border-radius: 12px;
+      color: #1890FF;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    
+    .feature-btn:hover {
+      background: rgba(201, 227, 255, 0.6);
+    }
+    
+    .feature-btn.active {
+      background: #1890FF;
+      color: #fff;
+    }
+    
+    .feature-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    /* 搜索框 */
+    .search-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    
+    .search-box {
+      width: 12rem;
+      position: relative;
+    }
+    
+    .search-box input {
+      width: 100%;
+      height: 32px;
+      padding: 4px 12px 4px 32px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    
+    .search-box input:focus {
+      border-color: #1890FF;
+    }
+    
+    .search-box .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(0, 0, 0, 0.25);
+    }
+    
+    /* 历史记录区域 */
+    .history-section {
+      margin-top: 28px;
+    }
+    
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .history-title {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    .history-clear {
+      color: #1890FF;
+      font-size: 12px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    
+    .history-list {
+      list-style: none;
+    }
+    
+    .history-item {
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    
+    .history-item:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+    
+    .history-item-text {
+      font-size: 14px;
+      color: #333;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .history-item-tip {
+      font-size: 12px;
+      color: #8C8C8C;
+    }
+    
+    .history-more {
+      display: block;
+      text-align: center;
+      color: #1890FF;
+      font-size: 12px;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+    
+    /* 右侧主内容 */
+    .main-content {
+      flex: 1;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* 欢迎区域 */
+    .welcome-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    
+    .robot-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #4A82EA 0%, #69B1FF 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(74, 130, 234, 0.3);
+    }
+    
+    .robot-icon svg {
+      width: 48px;
+      height: 48px;
+      fill: #fff;
+    }
+    
+    .welcome-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    
+    .welcome-desc {
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      line-height: 1.6;
+    }
+    
+    /* 输入区域 */
+    .input-section {
+      padding: 20px 40px 40px;
+      background: #fff;
+      border-top: 1px solid #f0f0f0;
+    }
+    
+    .input-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .textarea-container {
+      position: relative;
+      border: 1px solid #d9d9d9;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    
+    .textarea-container:focus-within {
+      border-color: #1890FF;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+    }
+    
+    .input-textarea {
+      width: 100%;
+      min-height: 56px;
+      max-height: 200px;
+      padding: 14px 60px 14px 16px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: none;
+      font-family: inherit;
+    }
+    
+    .input-textarea::placeholder {
+      color: #bfbfbf;
+    }
+    
+    .send-btn {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      width: 36px;
+      height: 36px;
+      background: #333;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+    
+    .send-btn:hover {
+      background: #4A82EA;
+    }
+    
+    .send-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: #fff;
+    }
+    
+    .input-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding: 0 4px;
+    }
+    
+    .toolbar-left {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .model-select {
+      padding: 4px 8px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      font-size: 12px;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .agent-search-btn {
+      padding: 4px 12px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      font-size: 12px;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .toolbar-right {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .toolbar-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    
+    .toolbar-btn:hover {
+      background: #f5f5f5;
+    }
+    
+    .toolbar-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    /* 底部提示 */
+    .footer-tip {
+      text-align: center;
+      padding: 12px;
+      color: #999;
+      font-size: 12px;
+    }
+    
+    /* Ant Design 兼容样式 */
+    .ant-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .ant-btn-primary {
+      background: #1890FF;
+      color: #fff;
+      border: 1px solid #1890FF;
+    }
+    
+    .ant-btn-text {
+      background: transparent;
+      border: none;
+    }
+    
+    .ant-input-affix-wrapper {
+      position: relative;
+      display: inline-flex;
+      width: 100%;
+      min-width: 0;
+      padding: 4px 11px;
+      color: rgba(0, 0, 0, 0.88);
+      font-size: 14px;
+      line-height: 1.5714285714285714;
+      background-color: #ffffff;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    
+    .ant-input-affix-wrapper:focus,
+    .ant-input-affix-wrapper-focused {
+      border-color: #1890FF;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.06);
+    }
+    
+    .ant-input {
+      width: 100%;
+      padding: 4px 11px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      background: transparent;
+    }
+    
+    .ant-input-prefix {
+      margin-right: 4px;
+      display: flex;
+      align-items: center;
+      color: rgba(0, 0, 0, 0.25);
+    }
+    
+    .anticon {
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .anticon svg {
+      display: inline-block;
+    }
+    
+    .ant-list {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5714285714285714;
+      color: rgba(0, 0, 0, 0.88);
+    }
+    
+    .ant-list-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: none;
+    }
+    
+    .ant-dropdown-trigger {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 顶部导航栏 -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <div class="logo-icon">蒜</div>
+          <span>小蒜</span>
+        </div>
+        <nav class="nav-menu">
+          <div class="nav-item active">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"/>
+              <path d="M8 3.5a.75.75 0 01.75.75v2.5h2.5a.75.75 0 010 1.5h-2.5v2.5a.75.75 0 01-1.5 0v-2.5h-2.5a.75.75 0 010-1.5h2.5v-2.5A.75.75 0 018 3.5z"/>
+            </svg>
+            仪表盘
+          </div>
+          <div class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 8a3 3 0 100-6 3 3 0 000 6zm4 4H4a1 1 0 00-1 1v3a1 1 0 001 1h8a1 1 0 001-1v-3a1 1 0 00-1-1z"/>
+            </svg>
+            用户管理
+          </div>
+          <div class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M11.5 1A1.5 1.5 0 0010 2.5v11A1.5 1.5 0 0011.5 15h-7A1.5 1.5 0 003 13.5v-11A1.5 1.5 0 004.5 1h7zm0 1h-7a.5.5 0 00-.5.5v11a.5.5 0 00.5.5h7a.5.5 0 00.5-.5v-11a.5.5 0 00-.5-.5z"/>
+              <path d="M5 4h6v1H5V4zm0 2.5h6v1H5v-1zm0 2.5h4v1H5v-1z"/>
+            </svg>
+            大模型管理
+          </div>
+          <div class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 3h8v2H4V3zm0 4h8v2H4V7zm0 4h5v2H4v-2z"/>
+            </svg>
+            操作日志
+          </div>
+          <div class="nav-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 12.5a5.5 5.5 0 110-11 5.5 5.5 0 010 11z"/>
+              <path d="M8 4a.75.75 0 00-.75.75v3.5a.75.75 0 001.5 0v-3.5A.75.75 0 008 4zm0 7a.75.75 0 100-1.5.75.75 0 000 1.5z"/>
+            </svg>
+            智能体管理
+          </div>
+        </nav>
+      </div>
+      <div class="header-right">
+        <button class="admin-btn">管理界面</button>
+        <div class="user-avatar">qida</div>
+      </div>
+    </header>
+
+    <!-- 左侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <svg width="23" height="23" viewBox="0 0 23 23" fill="none">
+          <path d="M8 6C8.55228 6 9 6.44772 9 7V16L8.99512 16.1025C8.94367 16.6066 8.51759 17 8 17C7.48241 17 7.05633 16.6066 7.00488 16.1025L7 16V7C7 6.44772 7.44772 6 8 6ZM15.3701 6.94922C16.0237 6.41864 17.001 6.88375 17.001 7.72559V15.0674C17.001 15.9093 16.0237 16.3744 15.3701 15.8438L10.8486 12.1729C10.3557 11.7727 10.3558 11.0203 10.8486 10.6201L15.3701 6.94922Z" fill="#8C8C8C"/>
+        </svg>
+      </button>
+
+      <!-- 功能按钮 -->
+      <div class="feature-btns">
+        <button class="feature-btn active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+          </svg>
+          <span>和大模型对话</span>
+        </button>
+        <button class="feature-btn">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M12 8.67857H4C3.84286 8.67857 3.71429 8.80714 3.71429 8.96429V12.1071C3.71429 12.2643 3.84286 12.3929 4 12.3929H12C12.1571 12.3929 12.2857 12.2643 12.2857 12.1071V8.96429C12.2857 8.80714 12.1571 8.67857 12 8.67857ZM11 11.1071H5V9.96429H11V11.1071ZM14.7143 13.4286C14.0036 13.4286 13.4286 14.0036 13.4286 14.7143C13.4286 15.425 14.0036 16 14.7143 16C15.425 16 16 15.425 16 14.7143C16 14.0036 15.425 13.4286 14.7143 13.4286ZM14.7143 15.1429C14.4768 15.1429 14.2857 14.9518 14.2857 14.7143C14.2857 14.4768 14.4768 14.2857 14.7143 14.2857C14.9518 14.2857 15.1429 14.4768 15.1429 14.7143C15.1429 14.9518 14.9518 15.1429 14.7143 15.1429ZM12 3.60714H4C3.84286 3.60714 3.71429 3.73571 3.71429 3.89286V7.03571C3.71429 7.19286 3.84286 7.32143 4 7.32143H12C12.1571 7.32143 12.2857 7.19286 12.2857 7.03571V3.89286C12.2857 3.73571 12.1571 3.60714 12 3.60714ZM11 6.03571H5V4.89286H11V6.03571ZM14.7143 2.57143C15.425 2.57143 16 1.99643 16 1.28571C16 0.575 15.425 0 14.7143 0C14.0036 0 13.4286 0.575 13.4286 1.28571C13.4286 1.99643 14.0036 2.57143 14.7143 2.57143ZM14.7143 0.857143C14.9518 0.857143 15.1429 1.04821 15.1429 1.28571C15.1429 1.52321 14.9518 1.71429 14.7143 1.71429C14.4768 1.71429 14.2857 1.52321 14.2857 1.28571C14.2857 1.04821 14.4768 0.857143 14.7143 0.857143ZM1.28571 0C0.575 0 0 0.575 0 1.28571C0 1.99643 0.575 2.57143 1.28571 2.57143C1.99643 2.57143 2.57143 1.99643 2.57143 1.28571C2.57143 0.575 1.99643 0 1.28571 0ZM1.28571 1.71429C1.04821 1.71429 0.857143 1.52321 0.857143 1.28571C0.857143 1.04821 1.04821 0.857143 1.28571 0.857143C1.52321 0.857143 1.71429 1.04821 1.71429 1.28571C1.71429 1.52321 1.52321 1.71429 1.28571 1.71429ZM1.28571 13.4286C0.575 13.4286 0 14.0036 0 14.7143C0 15.425 0.575 16 1.28571 16C1.99643 16 2.57143 15.425 2.57143 14.7143C2.57143 14.0036 1.99643 13.4286 1.28571 13.4286ZM1.28571 15.1429C1.04821 15.1429 0.857143 14.9518 0.857143 14.7143C0.857143 14.4768 1.04821 14.2857 1.28571 14.2857C1.52321 14.2857 1.71429 14.4768 1.71429 14.7143C1.71429 14.9518 1.52321 15.1429 1.28571 15.1429Z"/>
+          </svg>
+          <span>和智能体对话</span>
+        </button>
+        <button class="feature-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+          </svg>
+          <span>智慧报告</span>
+        </button>
+      </div>
+
+      <!-- 搜索框 -->
+      <div class="search-wrapper">
+        <div class="search-box">
+          <span class="search-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+          </span>
+          <input type="text" placeholder="搜索历史对话/智能体对话">
+        </div>
+      </div>
+
+      <!-- 大模型对话历史 -->
+      <div class="history-section">
+        <div class="history-header">
+          <span class="history-title">大模型对话历史</span>
+          <span class="history-clear">清空</span>
+        </div>
+        <ul class="history-list">
+          <li class="history-item">
+            <span class="history-item-tip">Enter发送，Shift+Enter换行</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="#8C8C8C">
+              <path d="M2.98431 9C3.24953 9 3.50388 8.89464 3.69142 8.70711C3.87896 8.51957 3.98431 8.26522 3.98431 8C3.98431 7.73478 3.87896 7.48043 3.69142 7.29289C3.50388 7.10536 3.24953 7 2.98431 7C2.7191 7 2.46474 7.10536 2.27721 7.29289C2.08967 7.48043 1.98431 7.73478 1.98431 8C1.98431 8.26522 2.08967 8.51957 2.27721 8.70711C2.46474 8.89464 2.7191 9 2.98431 9ZM7.98431 9C8.24953 9 8.50388 8.89464 8.69142 8.70711C8.87896 8.51957 8.98431 8.26522 8.98431 8C8.98431 7.73478 8.87896 7.48043 8.69142 7.29289C8.50388 7.10536 8.24953 7 7.98431 7C7.7191 7 7.46474 7.10536 7.27721 7.29289C7.08967 7.48043 6.98431 7.73478 6.98431 8C6.98431 8.26522 7.08967 8.51957 7.27721 8.70711C7.46474 8.89464 7.7191 9 7.98431 9ZM12.9843 9C13.2495 9 13.5039 8.89464 13.6914 8.70711C13.879 8.51957 13.9843 8.26522 13.9843 8C13.9843 7.73478 13.879 7.48043 13.6914 7.29289C13.5039 7.10536 13.2495 7 12.9843 7C12.7191 7 12.4647 7.10536 12.2772 7.29289C12.0897 7.48043 11.9843 7.73478 11.9843 8C11.9843 8.26522 12.0897 8.51957 12.2772 8.70711C12.4647 8.89464 12.7191 9 12.9843 9Z"/>
+            </svg>
+          </li>
+          <li class="history-item">
+            <span class="history-item-text">高斯过程SLAM解析</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="#8C8C8C">
+              <path d="M2.98431 9C3.24953 9 3.50388 8.89464 3.69142 8.70711C3.87896 8.51957 3.98431 8.26522 3.98431 8C3.98431 7.73478 3.87896 7.48043 3.69142 7.29289C3.50388 7.10536 3.24953 7 2.98431 7C2.7191 7 2.46474 7.10536 2.27721 7.29289C2.08967 7.48043 1.98431 7.73478 1.98431 8C1.98431 8.26522 2.08967 8.51957 2.27721 8.70711C2.46474 8.89464 2.7191 9 2.98431 9ZM7.98431 9C8.24953 9 8.50388 8.89464 8.69142 8.70711C8.87896 8.51957 8.98431 8.26522 8.98431 8C8.98431 7.73478 8.87896 7.48043 8.69142 7.29289C8.50388 7.10536 8.24953 7 7.98431 7C7.7191 7 7.46474 7.10536 7.27721 7.29289C7.08967 7.48043 6.98431 7.73478 6.98431 8C6.98431 8.26522 7.08967 8.51957 7.27721 8.70711C7.46474 8.89464 7.7191 9 7.98431 9ZM12.9843 9C13.2495 9 13.5039 8.89464 13.6914 8.70711C13.879 8.51957 13.9843 8.26522 13.9843 8C13.9843 7.73478 13.879 7.48043 13.6914 7.29289C13.5039 7.10536 13.2495 7 12.9843 7C12.7191 7 12.4647 7.10536 12.2772 7.29289C12.0897 7.48043 11.9843 7.73478 11.9843 8C11.9843 8.26522 12.0897 8.51957 12.2772 8.70711C12.4647 8.89464 12.7191 9 12.9843 9Z"/>
+            </svg>
+          </li>
+          <li class="history-item">
+            <span class="history-item-text">初次问候与回应</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="#8C8C8C">
+              <path d="M2.98431 9C3.24953 9 3.50388 8.89464 3.69142 8.70711C3.87896 8.51957 3.98431 8.26522 3.98431 8C3.98431 7.73478 3.87896 7.48043 3.69142 7.29289C3.50388 7.10536 3.24953 7 2.98431 7C2.7191 7 2.46474 7.10536 2.27721 7.29289C2.08967 7.48043 1.98431 7.73478 1.98431 8C1.98431 8.26522 2.08967 8.51957 2.27721 8.70711C2.46474 8.89464 2.7191 9 2.98431 9ZM7.98431 9C8.24953 9 8.50388 8.89464 8.69142 8.70711C8.87896 8.51957 8.98431 8.26522 8.98431 8C8.98431 7.73478 8.87896 7.48043 8.69142 7.29289C8.50388 7.10536 8.24953 7 7.98431 7C7.7191 7 7.46474 7.10536 7.27721 7.29289C7.08967 7.48043 6.98431 7.73478 6.98431 8C6.98431 8.26522 7.08967 8.51957 7.27721 8.70711C7.46474 8.89464 7.7191 9 7.98431 9ZM12.9843 9C13.2495 9 13.5039 8.89464 13.6914 8.70711C13.879 8.51957 13.9843 8.26522 13.9843 8C13.9843 7.73478 13.879 7.48043 13.6914 7.29289C13.5039 7.10536 13.2495 7 12.9843 7C12.7191 7 12.4647 7.10536 12.2772 7.29289C12.0897 7.48043 11.9843 7.73478 11.9843 8C11.9843 8.26522 12.0897 8.51957 12.2772 8.70711C12.4647 8.89464 12.7191 9 12.9843 9Z"/>
+            </svg>
+          </li>
+        </ul>
+        <span class="history-more">更多历史对话 ></span>
+      </div>
+
+      <!-- 智能体对话历史 -->
+      <div class="history-section">
+        <div class="history-header">
+          <span class="history-title">智能体对话历史</span>
+          <span class="history-clear">清空</span>
+        </div>
+        <ul class="history-list">
+          <li class="history-item">
+            <span class="history-item-text">校园生活</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="#8C8C8C">
+              <path d="M2.98431 9C3.24953 9 3.50388 8.89464 3.69142 8.70711C3.87896 8.51957 3.98431 8.26522 3.98431 8C3.98431 7.73478 3.87896 7.48043 3.69142 7.29289C3.50388 7.10536 3.24953 7 2.98431 7C2.7191 7 2.46474 7.10536 2.27721 7.29289C2.08967 7.48043 1.98431 7.73478 1.98431 8C1.98431 8.26522 2.08967 8.51957 2.27721 8.70711C2.46474 8.89464 2.7191 9 2.98431 9ZM7.98431 9C8.24953 9 8.50388 8.89464 8.69142 8.70711C8.87896 8.51957 8.98431 8.26522 8.98431 8C8.98431 7.73478 8.87896 7.48043 8.69142 7.29289C8.50388 7.10536 8.24953 7 7.98431 7C7.7191 7 7.46474 7.10536 7.27721 7.29289C7.08967 7.48043 6.98431 7.73478 6.98431 8C6.98431 8.26522 7.08967 8.51957 7.27721 8.70711C7.46474 8.89464 7.7191 9 7.98431 9ZM12.9843 9C13.2495 9 13.5039 8.89464 13.6914 8.70711C13.879 8.51957 13.9843 8.26522 13.9843 8C13.9843 7.73478 13.879 7.48043 13.6914 7.29289C13.5039 7.10536 13.2495 7 12.9843 7C12.7191 7 12.4647 7.10536 12.2772 7.29289C12.0897 7.48043 11.9843 7.73478 11.9843 8C11.9843 8.26522 12.0897 8.51957 12.2772 8.70711C12.4647 8.89464 12.7191 9 12.9843 9Z"/>
+            </svg>
+          </li>
+          <li class="history-item">
+            <span class="history-item-text">智慧报告</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="#8C8C8C">
+              <path d="M2.98431 9C3.24953 9 3.50388 8.89464 3.69142 8.70711C3.87896 8.51957 3.98431 8.26522 3.98431 8C3.98431 7.73478 3.87896 7.48043 3.69142 7.29289C3.50388 7.10536 3.24953 7 2.98431 7C2.7191 7 2.46474 7.10536 2.27721 7.29289C2.08967 7.48043 1.98431 7.73478 1.98431 8C1.98431 8.26522 2.08967 8.51957 2.27721 8.70711C2.46474 8.89464 2.7191 9 2.98431 9ZM7.98431 9C8.24953 9 8.50388 8.89464 8.69142 8.70711C8.87896 8.51957 8.98431 8.26522 8.98431 8C8.98431 7.73478 8.87896 7.48043 8.69142 7.29289C8.50388 7.10536 8.24953 7 7.98431 7C7.7191 7 7.46474 7.10536 7.27721 7.29289C7.08967 7.48043 6.98431 7.73478 6.98431 8C6.98431 8.26522 7.08967 8.51957 7.27721 8.70711C7.46474 8.89464 7.7191 9 7.98431 9ZM12.9843 9C13.2495 9 13.5039 8.89464 13.6914 8.70711C13.879 8.51957 13.9843 8.26522 13.9843 8C13.9843 7.73478 13.879 7.48043 13.6914 7.29289C13.5039 7.10536 13.2495 7 12.9843 7C12.7191 7 12.4647 7.10536 12.2772 7.29289C12.0897 7.48043 11.9843 7.73478 11.9843 8C11.9843 8.26522 12.0897 8.51957 12.2772 8.70711C12.4647 8.89464 12.7191 9 12.9843 9Z"/>
+            </svg>
+          </li>
+        </ul>
+        <span class="history-more">更多智能体对话 ></span>
+      </div>
+    </aside>
+
+    <!-- 主内容区域 -->
+    <main class="main-container" id="mainContainer">
+      <div class="main-content">
+        <!-- 欢迎区域 -->
+        <div class="welcome-section">
+          <div class="robot-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zM9 14a1 1 0 100 2 1 1 0 000-2zm6 0a1 1 0 100 2 1 1 0 000-2z"/>
+            </svg>
+          </div>
+          <h1 class="welcome-title">我是小蒜，欢迎向我提问</h1>
+          <p class="welcome-desc">
+            我可以帮你了解规章制度、写作各种创意内容，<br>
+            请把你的任务交给我吧~
+          </p>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="input-section">
+          <div class="input-wrapper">
+            <div class="textarea-container">
+              <textarea 
+                class="input-textarea" 
+                placeholder="开始问小蒜问题吧"
+                rows="1"
+                id="chatInput"
+              ></textarea>
+              <button class="send-btn" id="sendBtn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="input-toolbar">
+              <div class="toolbar-left">
+                <button class="model-select">
+                  deepseek-v3
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z"/>
+                  </svg>
+                </button>
+                <button class="agent-search-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                  </svg>
+                  搜索智能体
+                </button>
+              </div>
+              <div class="toolbar-right">
+                <button class="toolbar-btn" title="编辑">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部提示 -->
+        <div class="footer-tip">
+          内容由AI生成，请仔细甄别
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // 侧边栏切换
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const mainContainer = document.getElementById('mainContainer');
+    
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      mainContainer.classList.toggle('sidebar-collapsed');
+    });
+
+    // 输入框自动调整高度
+    const chatInput = document.getElementById('chatInput');
+    
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+    });
+
+    // 发送按钮点击事件
+    const sendBtn = document.getElementById('sendBtn');
+    
+    sendBtn.addEventListener('click', () => {
+      const text = chatInput.value.trim();
+      if (text) {
+        console.log('发送消息:', text);
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+      }
+    });
+
+    // 回车发送
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+
+    // 功能按钮切换
+    const featureBtns = document.querySelectorAll('.feature-btn');
+    featureBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        featureBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // 历史记录点击
+    const historyItems = document.querySelectorAll('.history-item');
+    historyItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const text = item.querySelector('.history-item-text, .history-item-tip');
+        if (text && text.classList.contains('history-item-text')) {
+          chatInput.value = text.textContent;
+          chatInput.focus();
+        }
+      });
+    });
+
+    // 清空按钮
+    const clearBtns = document.querySelectorAll('.history-clear');
+    clearBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const list = btn.closest('.history-section').querySelector('.history-list');
+        const items = list.querySelectorAll('.history-item');
+        items.forEach(item => {
+          const text = item.querySelector('.history-item-text, .history-item-tip');
+          if (text && text.classList.contains('history-item-text')) {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
